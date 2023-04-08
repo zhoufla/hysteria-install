@@ -229,9 +229,9 @@ inst_hy(){
     "alpn": "h3",
     "auth": {
         "mode": "password",
-        "config": [
+        "config": {
             "password": "$auth_pwd"
-        ]
+        }
     }
 }
 EOF
@@ -375,6 +375,11 @@ hyswitch(){
         3 ) stophy && starthy ;;
         * ) exit 1 ;;
     esac
+}
+
+change_cert(){
+    old_cert=""
+    old_key=""
 }
 
 editconf(){
