@@ -382,7 +382,27 @@ hyswitch(){
 change_cert(){
     old_cert=$(cat /etc/hysteria/config.json | grep cert | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
     old_key=$(cat /etc/hysteria/config.json | grep key | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
+    old_hyym=$(cat /root/hy/v2rayn.json | grep server | sed -n 1p | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g" | awk -F ":" '{print $1}')
+    old_domain=$(cat /root/hy/v2rayn.json | grep server_name | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
     init_cert
+    if [[ $hy_ym == "www.bing.com" ]]; then
+        WARPv4Status=$(curl -s4m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
+        WARPv6Status=$(curl -s6m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
+        if [[ $WARPv4Status =~ on|plus ]] || [[ $WARPv6Status =~ on|plus ]]; then
+            wg-quick down wgcf >/dev/null 2>&1
+            systemctl stop warp-go >/dev/null 2>&1
+            hy_ym=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || hy_ym=$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)
+            wg-quick up wgcf >/dev/null 2>&1
+            systemctl start warp-go >/dev/null 2>&1
+        else
+            hy_ym=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || hy_ym=$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)
+        fi
+    fi
+    sed -i "s/$old_cert/$cert_path" /etc/hysteria/config.json
+    sed -i "s/$old_key/$key_path" /etc/hysteria/config.json
+    sed -i "s/$old_hyym/$hy_ym" /root/hy/v2rayn.json
+    sed -i "s/$old_hyym/$hy_ym" /root/hy/clash-meta.yaml
+    sed -i "s/$old_hyym/$hy_ym" /root/hy/URL.txt
     stophy && starthy
     green "修改配置成功，请重新导入节点配置文件"
 }
@@ -390,6 +410,10 @@ change_cert(){
 change_pro(){
     old_pro=$(cat /etc/hysteria/config.json | grep protocol | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
     init_pro
+    sed -i "s/$old_pro/$protocol" /etc/hysteria/config.json
+    sed -i "s/$old_pro/$protocol" /root/hy/v2rayn.json
+    sed -i "s/$old_pro/$protocol" /root/hy/clash-meta.yaml
+    sed -i "s/$old_pro/$protocol" /root/hy/URL.txt
     stophy && starthy
     green "修改配置成功，请重新导入节点配置文件"
 }
@@ -397,6 +421,21 @@ change_pro(){
 change_port(){
     old_port=$(cat /etc/hysteria/config.json | grep listen | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g" | sed "s/://g")
     init_port
+
+    iptables -t nat -F PREROUTING >/dev/null 2>&1
+    netfilter-persistent save >/dev/null 2>&1
+
+    if [[ -n $firstport ]]; then
+        last_port="$port,$firstport-$endport"
+    else
+        last_port=$port
+    fi
+
+    sed -i "s/$old_port/$port" /etc/hysteria/config.json
+    sed -i "s/$old_port/$last_port" /root/hy/v2rayn.json
+    sed -i "s/$old_port/$last_port" /root/hy/clash-meta.yaml
+    sed -i "s/$old_port/$last_port" /root/hy/URL.txt
+
     stophy && starthy
     green "修改配置成功，请重新导入节点配置文件"
 }
@@ -404,6 +443,10 @@ change_port(){
 change_pwd(){
     old_pwd=$(cat /etc/hysteria/config.json | grep password | sed -n 2p | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
     init_pwd
+    sed -i "s/$old_pwd/$auth_pwd" /etc/hysteria/config.json
+    sed -i "s/$old_pwd/$auth_pwd" /root/hy/v2rayn.json
+    sed -i "s/$old_pwd/$auth_pwd" /root/hy/clash-meta.yaml
+    sed -i "s/$old_pwd/$auth_pwd" /root/hy/URL.txt
     stophy && starthy
     green "修改配置成功，请重新导入节点配置文件"
 }
@@ -411,7 +454,7 @@ change_pwd(){
 change_resolv(){
     old_resolv=$(cat /etc/hysteria/config.json | grep resolv | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
     inst_resolv
-    sed -i "s/$old_resolv/$resolv" /etc/hysteria/config.jspn
+    sed -i "s/$old_resolv/$resolv" /etc/hysteria/config.json
     stophy && starthy
     green "修改配置成功，请重新导入节点配置文件"
 }
@@ -424,8 +467,13 @@ editconf(){
     echo -e " ${GREEN}4.${PLAIN} 修改认证密码"
     echo -e " ${GREEN}5.${PLAIN} 修改域名解析优先级"
     echo ""
-    read -p " 请选择操作[1-2]：" confAnswer
+    read -p " 请选择操作 [1-5]：" confAnswer
     case $confAnswer in
+        1 ) change_cert ;;
+        2 ) change_pro ;;
+        3 ) change_port ;;
+        4 ) change_pwd ;;
+        5 ) change_resolv ;;
         * ) exit 1 ;;
     esac
 }
