@@ -203,7 +203,7 @@ inst_hy(){
     fi
     ${PACKAGE_INSTALL[int]} curl wget sudo qrencode procps iptables-persistent netfilter-persistent
 
-    wget -N https://raw.githubusercontent.com/apernet/hysteria/master/install_server.sh
+    wget -N https://raw.githubusercontent.com/Misaka-blog/hysteria-install/main/install_server.sh
     bash install_server.sh
     rm -f install_server.sh
 
