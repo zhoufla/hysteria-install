@@ -228,7 +228,7 @@ inst_hy(){
     "key": "$key_path",
     "alpn": "h3",
     "auth": {
-        "mode": "passwords",
+        "mode": "password",
         "config": [
             "password": "$auth_pwd"
         ]
