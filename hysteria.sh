@@ -328,7 +328,7 @@ EOF
     systemctl enable hysteria-server
     systemctl start hysteria-server
 
-    if [[ -n $(systemctl status hysteria-server 2>/dev/null | grep -w active) && -f '/etc/hysteria/hysteria.json' ]]; then
+    if [[ -n $(systemctl status hysteria-server 2>/dev/null | grep -w active) && -f '/etc/hysteria/config.json' ]]; then
         green "Hysteria 服务启动成功"
     else
         red "Hysteria-server 服务启动失败，请运行 systemctl status hysteria-server 查看服务状态并反馈，脚本退出" && exit 1
@@ -380,8 +380,40 @@ hyswitch(){
 }
 
 change_cert(){
-    old_cert=""
-    old_key=""
+    old_cert=$(cat /etc/hysteria/config.json | grep cert | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
+    old_key=$(cat /etc/hysteria/config.json | grep key | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
+    init_cert
+    stophy && starthy
+    green "修改配置成功，请重新导入节点配置文件"
+}
+
+change_pro(){
+    old_pro=$(cat /etc/hysteria/config.json | grep protocol | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
+    init_pro
+    stophy && starthy
+    green "修改配置成功，请重新导入节点配置文件"
+}
+
+change_port(){
+    old_port=$(cat /etc/hysteria/config.json | grep listen | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g" | sed "s/://g")
+    init_port
+    stophy && starthy
+    green "修改配置成功，请重新导入节点配置文件"
+}
+
+change_pwd(){
+    old_pwd=$(cat /etc/hysteria/config.json | grep password | sed -n 2p | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
+    init_pwd
+    stophy && starthy
+    green "修改配置成功，请重新导入节点配置文件"
+}
+
+change_resolv(){
+    old_resolv=$(cat /etc/hysteria/config.json | grep resolv | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
+    inst_resolv
+    sed -i "s/$old_resolv/$resolv" /etc/hysteria/config.jspn
+    stophy && starthy
+    green "修改配置成功，请重新导入节点配置文件"
 }
 
 editconf(){
