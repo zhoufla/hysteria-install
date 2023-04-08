@@ -110,6 +110,7 @@ inst_cert(){
         openssl ecparam -genkey -name prime256v1 -out /etc/hysteria/private.key
         openssl req -new -x509 -days 36500 -key /etc/hysteria/private.key -out /etc/hysteria/cert.crt -subj "/CN=www.bing.com"
         hy_ym="www.bing.com"
+        domain="www.bing.com"
     fi
 }
 
@@ -236,7 +237,11 @@ inst_hy(){
 EOF
 
     # 确定最终入站端口范围
-    if [[ $firstport]]
+    if [[ -n $firstport ]]; then
+        last_port="$port,$firstport-$endport"
+    else
+        last_port=$port
+    fi
 
     # 判断证书是否为必应自签，如是则使用 IP 作为节点入站
     if [[ $hy_ym == "www.bing.com" ]]; then
@@ -257,18 +262,64 @@ EOF
     mkdir /root/hy >/dev/null 2>&1
     cat <<EOF > /root/hy/v2rayn.json
 {
-    "protocol": "udp",
-    "server": "$hy_ym:16385,16387-16485"
+    "protocol": "$protocol",
+    "server": "$hy_ym:$last_port"
+    "server_name": "$domain",
     "alpn": "h3",
     "up_mbps": 50,
     "down_mbps": 150,
     "auth_str": "$auth_pwd",
+    "insecure": true,
+    "retry": 3,
+    "retry_interval": 3,
     "fast_open": true,
+    "lazy_start": true,
+    "hop_interval": 60,
     "socks5": {
         "listen": "127.0.0.1:1080"
     }
 }
 EOF
+
+    cat <<EOF > /root/hy/clash-meta.yaml
+mixed-port: 7890
+external-controller: 127.0.0.1:9090
+allow-lan: false
+mode: rule
+log-level: debug
+ipv6: true
+dns:
+  enable: true
+  listen: 0.0.0.0:53
+  enhanced-mode: fake-ip
+  nameserver:
+    - 8.8.8.8
+    - 1.1.1.1
+    - 114.114.114.114
+proxies:
+  - name: Misaka-Hysteria
+    type: hysteria
+    server: $hy_ym
+    port: $port
+    auth_str: $auth_pwd
+    alpn:
+      - h3
+    protocol: $protocol
+    up: 20
+    down: 100
+    sni: $domain
+    skip-cert-verify: true
+proxy-groups:
+  - name: Proxy
+    type: select
+    proxies:
+      - Misaka-Hysteria
+      
+rules:
+  - GEOIP,CN,DIRECT
+  - MATCH,Proxy
+EOF
+    url="hysteria://$hy_ym:$port?protocol=$protocol&auth=$auth_pwd&peer=$domain&insecure=$true&upmbps=10&downmbps=50&alpn=h3#Misaka-Hysteria"
 }
 
 menu() {
