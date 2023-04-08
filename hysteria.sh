@@ -320,6 +320,24 @@ rules:
   - MATCH,Proxy
 EOF
     url="hysteria://$hy_ym:$port?protocol=$protocol&auth=$auth_pwd&peer=$domain&insecure=$true&upmbps=10&downmbps=50&alpn=h3#Misaka-Hysteria"
+    echo $url > /root/hy/URL.txt
+
+    systemctl daemon-reload
+    systemctl enable hysteria-server
+    systemctl start hysteria-server
+
+    if [[ -n $(systemctl status hysteria-server 2>/dev/null | grep -w active) && -f '/etc/hysteria/hysteria.json' ]]; then
+        green "Hysteria 服务启动成功"
+    else
+        red "Hysteria-server 服务启动失败，请运行 systemctl status hysteria-server 查看服务状态并反馈，脚本退出" && exit 1
+    fi
+
+    green "Hysteria 代理服务安装完成"
+    yellow "v2rayn 客户端配置文件 v2rayn.json 内容如下，并保存到 /root/hy/v2rayn.json"
+    red $(cat /root/hy/v2rayn.json)
+    yellow "Clash Meta 客户端配置文件已保存到 /root/hy/clash-meta.yaml"
+    yellow "Hysteria 节点分享链接如下，并保存到 /root/hy/URL.txt"
+    red $(cat /root/hy/URL.txt)
 }
 
 menu() {
