@@ -51,6 +51,7 @@ inst_cert(){
         if [[ -f /root/cert.crt && -f /root/private.key ]] && [[ -s /root/cert.crt && -s /root/private.key ]] && [[ -f /root/ca.log ]]; then
             domain=$(cat /root/ca.log)
             green "检测到原有域名：$domain 的证书，正在应用"
+            hy_ym=$domain
         else
             read -p "请输入需要申请证书的域名：" domain
             [[ -z $domain ]] && red "未输入域名，无法执行操作！" && exit 1
@@ -84,6 +85,7 @@ inst_cert(){
                     green "证书申请成功! 脚本申请到的证书 (cert.crt) 和私钥 (private.key) 文件已保存到 /root 文件夹下"
                     yellow "证书crt文件路径如下: /root/cert.crt"
                     yellow "私钥key文件路径如下: /root/private.key"
+                    hy_ym=$domain
                 fi
             else
                 red "当前域名解析的IP与当前VPS使用的真实IP不匹配"
@@ -91,6 +93,7 @@ inst_cert(){
                 yellow "1. 请确保CloudFlare小云朵为关闭状态(仅限DNS), 其他域名解析或CDN网站设置同理"
                 yellow "2. 请检查DNS解析设置的IP是否为VPS的真实IP"
                 yellow "3. 脚本可能跟不上时代, 建议截图发布到GitHub Issues、GitLab Issues、论坛或TG群询问"
+                exit 1
             fi
         fi
     elif [[ $certInput == 3 ]]; then
@@ -100,11 +103,13 @@ inst_cert(){
         yellow "密钥文件key的路径：$keypath "
         read -p "请输入证书的域名：" domain
         yellow "证书域名：$domain"
+        hy_ym=$domain
     else
         cert_path="/etc/hysteria/cert.crt"
         key_path="/etc/hysteria/private.key"
         openssl ecparam -genkey -name prime256v1 -out /etc/hysteria/private.key
         openssl req -new -x509 -days 36500 -key /etc/hysteria/private.key -out /etc/hysteria/cert.crt -subj "/CN=www.bing.com"
+        hy_ym="www.bing.com"
     fi
 }
 
@@ -125,6 +130,70 @@ inst_pro(){
     fi
 }
 
+inst_port(){
+    read -p "设置 Hysteria 端口[1-65535]（回车则随机分配端口）：" port
+    [[ -z $port ]] && port=$(shuf -i 2000-65535 -n 1)
+    until [[ -z $(ss -ntlp | awk '{print $4}' | sed 's/.*://g' | grep -w "$port") ]]; do
+        if [[ -n $(ss -ntlp | awk '{print $4}' | sed 's/.*://g' | grep -w "$port") ]]; then
+            echo -e "${RED} $port ${PLAIN} 端口已经被其他程序占用，请更换端口重试！"
+            read -p "设置 Hysteria 端口[1-65535]（回车则随机分配端口）：" port
+            [[ -z $port ]] && port=$(shuf -i 2000-65535 -n 1)
+        fi
+    done
+
+    if [[ $protocol == "udp" ]]; then
+        inst_jump
+    fi
+}
+
+inst_jump(){
+    yellow "你当前选择的协议是 udp，可支持端口跳跃功能"
+    green "Hysteria 端口使用模式如下："
+    echo ""
+    echo -e " ${GREEN}1.${PLAIN} 单端口 ${YELLOW}（默认）${PLAIN}"
+    echo -e " ${GREEN}2.${PLAIN} 端口跳跃"
+    echo ""
+    read -rp "请输入选项 [1-2]: " jumpInput
+    if [[ $jumpInput == 2 ]]; then
+        read -p "设置范围端口的起始端口 (建议10000-65535之间)：" firstport
+        read -p "设置一个范围端口的末尾端口 (建议10000-65535之间，一定要比上面起始端口大)：" endport
+        if [[ $firstudpport -ge $endudpport ]]; then
+            until [[ $firstudpport -le $endudpport ]]; do
+                if [[ $firstudpport -ge $endudpport ]]; then
+                    red "你设置的起始端口小于末尾端口啦，人才！请重新输入起始/末尾端口"
+                    read -p "设置范围端口的起始端口 (建议10000-65535之间)：" firstport
+                    read -p "设置一个范围端口的末尾端口 (建议10000-65535之间，一定要比上面起始端口大)：" endport
+                fi
+            done
+        fi
+        iptables -t nat -A PREROUTING -p udp --dport $firstport:$endport  -j DNAT --to-destination :$port
+        ip6tables -t nat -A PREROUTING -p udp --dport $firstport:$endport  -j DNAT --to-destination :$port
+        iptables -t nat -F PREROUTING >/dev/null 2>&1
+        netfilter-persistent save >/dev/null 2>&1
+    else
+        red "将继续使用单端口模式"
+    fi
+}
+
+inst_pwd(){
+    read -p "设置 Hysteria 密码（回车跳过为随机字符）：" auth_pwd
+    [[ -z $auth_pwd ]] && auth_pwd=$(date +%s%N | md5sum | cut -c 1-8)
+}
+
+inst_resolv(){
+    green "Hysteria 域名解析模式如下："
+    echo ""
+    echo -e " ${GREEN}1.${PLAIN} IPv4 优先 ${YELLOW}（默认）${PLAIN}"
+    echo -e " ${GREEN}2.${PLAIN} IPv6 优先"
+    echo ""
+    read -rp "请输入选项 [1-2]: " resolvInput
+    if [[ $resolvInput == 2 ]]; then
+        resolv=64
+    else
+        resolv=46
+    fi
+}
+
 inst_hy(){
     if [[ ! $SYSTEM == "CentOS" ]]; then
         ${PACKAGE_UPDATE[int]}
@@ -140,6 +209,63 @@ inst_hy(){
     else
         red "Hysteria 安装失败！"
     fi
+
+    # 询问用户 Hysteria 配置
+    inst_cert
+    inst_pro
+    inst_port
+    inst_pwd
+    inst_resolv
+
+    # 设置 Hysteria 配置文件
+    cat <<EOF > /etc/hysteria/config.json
+{
+    "protocol": "$protocol",
+    "listen": ":$port",
+    "resolve_preference": "$resolv",
+    "cert": "$cert_path",
+    "key": "$key_path",
+    "alpn": "h3",
+    "auth": {
+        "mode": "passwords",
+        "config": [
+            "password": "$auth_pwd"
+        ]
+    }
+}
+EOF
+
+    # 判断证书是否为必应自签，如是则使用 IP 作为节点入站
+    if [[ $hy_ym == "www.bing.com" ]]; then
+        WARPv4Status=$(curl -s4m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
+        WARPv6Status=$(curl -s6m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
+        if [[ $WARPv4Status =~ on|plus ]] || [[ $WARPv6Status =~ on|plus ]]; then
+            wg-quick down wgcf >/dev/null 2>&1
+            systemctl stop warp-go >/dev/null 2>&1
+            hy_ym=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || hy_ym=$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)
+            wg-quick up wgcf >/dev/null 2>&1
+            systemctl start warp-go >/dev/null 2>&1
+        else
+            hy_ym=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || hy_ym=$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)
+        fi
+    fi
+
+    # 设置 V2rayN 及 Clash Meta 配置文件
+    mkdir /root/hy >/dev/null 2>&1
+    cat <<EOF > /root/hy/v2rayn.json
+{
+    "protocol": "udp",
+    "server": "$hy_ym:16385,16387-16485"
+    "alpn": "h3",
+    "up_mbps": 50,
+    "down_mbps": 150,
+    "auth_str": "$auth_pwd",
+    "fast_open": true,
+    "socks5": {
+        "listen": "127.0.0.1:1080"
+    }
+}
+EOF
 }
 
 menu() {
