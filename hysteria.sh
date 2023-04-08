@@ -157,10 +157,10 @@ inst_jump(){
     if [[ $jumpInput == 2 ]]; then
         read -p "设置范围端口的起始端口 (建议10000-65535之间)：" firstport
         read -p "设置一个范围端口的末尾端口 (建议10000-65535之间，一定要比上面起始端口大)：" endport
-        if [[ $firstudpport -ge $endudpport ]]; then
-            until [[ $firstudpport -le $endudpport ]]; do
-                if [[ $firstudpport -ge $endudpport ]]; then
-                    red "你设置的起始端口小于末尾端口啦，人才！请重新输入起始/末尾端口"
+        if [[ $firstport -ge $endport ]]; then
+            until [[ $firstport -le $endport ]]; do
+                if [[ $firstport -ge $endport ]]; then
+                    red "你设置的起始端口小于末尾端口，请重新输入起始和末尾端口"
                     read -p "设置范围端口的起始端口 (建议10000-65535之间)：" firstport
                     read -p "设置一个范围端口的末尾端口 (建议10000-65535之间，一定要比上面起始端口大)：" endport
                 fi
@@ -234,6 +234,9 @@ inst_hy(){
     }
 }
 EOF
+
+    # 确定最终入站端口范围
+    if [[ $firstport]]
 
     # 判断证书是否为必应自签，如是则使用 IP 作为节点入站
     if [[ $hy_ym == "www.bing.com" ]]; then
