@@ -340,6 +340,67 @@ EOF
     red $(cat /root/hy/URL.txt)
 }
 
+uninst_hy(){
+    systemctl stop hysteria-server.service >/dev/null 2>&1
+    systemctl disable hysteria-server.service >/dev/null 2>&1
+    rm -f /lib/systemd/system/hysteria-server.service /lib/systemd/system/hysteria-server@.service
+    rm -rf /usr/local/bin/hysteria /etc/hysteria /root/hy /root/hysteria.sh
+    sed -i '/systemctl restart hysteria-server/d' /etc/crontab
+    iptables -t nat -F PREROUTING >/dev/null 2>&1
+    netfilter-persistent save >/dev/null 2>&1
+    green "Hysteria 已彻底卸载完成！"
+}
+
+starthy(){
+    systemctl start hysteria-server
+    systemctl enable hysteria-server >/dev/null 2>&1
+}
+
+stophy(){
+    systemctl stop hysteria-server
+    systemctl disable hysteria-server >/dev/null 2>&1
+}
+
+showconf(){
+    yellow "v2rayn 客户端配置文件 v2rayn.json 内容如下，并保存到 /root/hy/v2rayn.json"
+    red $(cat /root/hy/v2rayn.json)
+    yellow "Clash Meta 客户端配置文件已保存到 /root/hy/clash-meta.yaml"
+    yellow "Hysteria 节点分享链接如下，并保存到 /root/hy/URL.txt"
+    red $(cat /root/hy/URL.txt)
+}
+
+editconf(){
+    green "Hysteria 配置变更选择如下:"
+    echo -e " ${GREEN}1.${PLAIN} 修改证书类型"
+    echo -e " ${GREEN}2.${PLAIN} 修改传输协议"
+    echo -e " ${GREEN}3.${PLAIN} 修改连接端口"
+    echo -e " ${GREEN}4.${PLAIN} 修改认证密码"
+    echo -e " ${GREEN}5.${PLAIN} 修改域名解析优先级"
+    echo ""
+    read -p " 请选择操作[1-2]：" confAnswer
+    case $confAnswer in
+        1 ) changeport ;;
+        2 ) changetoken ;;
+        * ) exit 1 ;;
+    esac
+}
+
+hyswitch(){
+    yellow "请选择你需要的操作："
+    echo ""
+    echo -e " ${GREEN}1.${PLAIN} 启动 Hysteria"
+    echo -e " ${GREEN}2.${PLAIN} 关闭 Hysteria"
+    echo -e " ${GREEN}3.${PLAIN} 重启 Hysteria"
+    echo ""
+    read -rp "请输入选项 [0-3]: " switchInput
+    case $switchInput in
+        1 ) starthy ;;
+        2 ) stophy ;;
+        3 ) stophy && starthy ;;
+        * ) exit 1 ;;
+    esac
+}
+
 menu() {
     clear
     echo "#############################################################"
@@ -365,6 +426,10 @@ menu() {
     read -rp "请输入选项 [0-5]: " menuInput
     case $menuInput in
         1 ) inst_hy ;;
+        2 ) uninst_hy ;;
+        3 ) hyswitch ;;
+        4 ) editconf ;;
+        5 ) showconf ;;
         * ) exit 1 ;;
     esac
 }
