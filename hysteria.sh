@@ -348,7 +348,7 @@ EOF
 
     green "Hysteria 代理服务安装完成"
     yellow "v2rayn 客户端配置文件 v2rayn.json 内容如下，并保存到 /root/hy/v2rayn.json"
-    red $(cat /root/hy/v2rayn.json)
+    cat /root/hy/v2rayn.json
     yellow "Clash Meta 客户端配置文件已保存到 /root/hy/clash-meta.yaml"
     yellow "Hysteria 节点分享链接如下，并保存到 /root/hy/URL.txt"
     red $(cat /root/hy/URL.txt)
