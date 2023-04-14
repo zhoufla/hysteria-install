@@ -264,11 +264,11 @@ EOF
         if [[ $WARPv4Status =~ on|plus ]] || [[ $WARPv6Status =~ on|plus ]]; then
             wg-quick down wgcf >/dev/null 2>&1
             systemctl stop warp-go >/dev/null 2>&1
-            hy_ym=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || hy_ym=$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)
+            hy_ym=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || hy_ym="[$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)]"
             wg-quick up wgcf >/dev/null 2>&1
             systemctl start warp-go >/dev/null 2>&1
         else
-            hy_ym=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || hy_ym=$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)
+            hy_ym=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || hy_ym="[$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)]"
         fi
     fi
 
