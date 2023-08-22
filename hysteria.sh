@@ -277,7 +277,7 @@ EOF
     cat <<EOF > /root/hy/v2rayn.json
 {
     "protocol": "$protocol",
-    "server": "$hy_ym:$last_port"
+    "server": "$hy_ym:$last_port",
     "server_name": "$domain",
     "alpn": "h3",
     "up_mbps": 50,
