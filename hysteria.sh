@@ -53,6 +53,18 @@ inst_cert(){
             green "检测到原有域名：$domain 的证书，正在应用"
             hy_ym=$domain
         else
+            WARPv4Status=$(curl -s4m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
+            WARPv6Status=$(curl -s6m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
+            if [[ $WARPv4Status =~ on|plus ]] || [[ $WARPv6Status =~ on|plus ]]; then
+                wg-quick down wgcf >/dev/null 2>&1
+                systemctl stop warp-go >/dev/null 2>&1
+                ip=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || ip=$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)
+                wg-quick up wgcf >/dev/null 2>&1
+                systemctl start warp-go >/dev/null 2>&1
+            else
+                ip=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || ip=$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)
+            fi
+            
             read -p "请输入需要申请证书的域名：" domain
             [[ -z $domain ]] && red "未输入域名，无法执行操作！" && exit 1
             green "已输入的域名：$domain" && sleep 1
@@ -252,11 +264,11 @@ EOF
         if [[ $WARPv4Status =~ on|plus ]] || [[ $WARPv6Status =~ on|plus ]]; then
             wg-quick down wgcf >/dev/null 2>&1
             systemctl stop warp-go >/dev/null 2>&1
-            hy_ym=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || hy_ym=$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)
+            hy_ym=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || hy_ym="[$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)]"
             wg-quick up wgcf >/dev/null 2>&1
             systemctl start warp-go >/dev/null 2>&1
         else
-            hy_ym=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || hy_ym=$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)
+            hy_ym=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || hy_ym="[$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)]"
         fi
     fi
 
@@ -265,7 +277,7 @@ EOF
     cat <<EOF > /root/hy/v2rayn.json
 {
     "protocol": "$protocol",
-    "server": "$hy_ym:$last_port"
+    "server": "$hy_ym:$last_port",
     "server_name": "$domain",
     "alpn": "h3",
     "up_mbps": 50,
@@ -336,7 +348,7 @@ EOF
 
     green "Hysteria 代理服务安装完成"
     yellow "v2rayn 客户端配置文件 v2rayn.json 内容如下，并保存到 /root/hy/v2rayn.json"
-    red $(cat /root/hy/v2rayn.json)
+    cat /root/hy/v2rayn.json
     yellow "Clash Meta 客户端配置文件已保存到 /root/hy/clash-meta.yaml"
     yellow "Hysteria 节点分享链接如下，并保存到 /root/hy/URL.txt"
     red $(cat /root/hy/URL.txt)
@@ -480,7 +492,7 @@ editconf(){
 
 showconf(){
     yellow "v2rayn 客户端配置文件 v2rayn.json 内容如下，并保存到 /root/hy/v2rayn.json"
-    red $(cat /root/hy/v2rayn.json)
+    cat /root/hy/v2rayn.json
     yellow "Clash Meta 客户端配置文件已保存到 /root/hy/clash-meta.yaml"
     yellow "Hysteria 节点分享链接如下，并保存到 /root/hy/URL.txt"
     red $(cat /root/hy/URL.txt)
@@ -489,7 +501,7 @@ showconf(){
 menu() {
     clear
     echo "#############################################################"
-    echo -e "#                  ${RED}Hysteria 一键安装脚本${PLAIN}                   #"
+    echo -e "#                   ${RED}Hysteria 一键安装脚本${PLAIN}                   #"
     echo -e "# ${GREEN}作者${PLAIN}: MisakaNo の 小破站                                  #"
     echo -e "# ${GREEN}博客${PLAIN}: https://blog.misaka.rest                            #"
     echo -e "# ${GREEN}GitHub 项目${PLAIN}: https://github.com/Misaka-blog               #"
