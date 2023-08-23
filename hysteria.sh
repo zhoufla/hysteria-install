@@ -342,7 +342,7 @@ rules:
   - MATCH,Proxy
 EOF
     url="hysteria://$hy_ym:$port?protocol=$protocol&auth=$auth_pwd&peer=$domain&insecure=$true&upmbps=10&downmbps=50&alpn=h3#Misaka-Hysteria"
-    echo $url > /root/hy/URL.txt
+    echo $url > /root/hy/url.txt
 
     systemctl daemon-reload
     systemctl enable hysteria-server
@@ -358,8 +358,8 @@ EOF
     yellow "客户端配置文件 hy-client.json 内容如下，并保存到 /root/hy/hy-client.json"
     cat /root/hy/hy-client.json
     yellow "Clash Meta 客户端配置文件已保存到 /root/hy/clash-meta.yaml"
-    yellow "Hysteria 节点分享链接如下，并保存到 /root/hy/URL.txt"
-    red $(cat /root/hy/URL.txt)
+    yellow "Hysteria 节点分享链接如下，并保存到 /root/hy/url.txt"
+    red $(cat /root/hy/url.txt)
 }
 
 uninst_hy(){
@@ -422,7 +422,7 @@ change_cert(){
     sed -i "s/$old_key/$key_path" /etc/hysteria/config.json
     sed -i "s/$old_hyym/$hy_ym" /root/hy/hy-client.json
     sed -i "s/$old_hyym/$hy_ym" /root/hy/clash-meta.yaml
-    sed -i "s/$old_hyym/$hy_ym" /root/hy/URL.txt
+    sed -i "s/$old_hyym/$hy_ym" /root/hy/url.txt
     stophy && starthy
     green "修改配置成功，请重新导入节点配置文件"
 }
@@ -433,7 +433,7 @@ change_pro(){
     sed -i "s/$old_pro/$protocol" /etc/hysteria/config.json
     sed -i "s/$old_pro/$protocol" /root/hy/hy-client.json
     sed -i "s/$old_pro/$protocol" /root/hy/clash-meta.yaml
-    sed -i "s/$old_pro/$protocol" /root/hy/URL.txt
+    sed -i "s/$old_pro/$protocol" /root/hy/url.txt
     stophy && starthy
     green "修改配置成功，请重新导入节点配置文件"
 }
@@ -454,7 +454,7 @@ change_port(){
     sed -i "s/$old_port/$port" /etc/hysteria/config.json
     sed -i "s/$old_port/$last_port" /root/hy/hy-client.json
     sed -i "s/$old_port/$last_port" /root/hy/clash-meta.yaml
-    sed -i "s/$old_port/$last_port" /root/hy/URL.txt
+    sed -i "s/$old_port/$last_port" /root/hy/url.txt
 
     stophy && starthy
     green "修改配置成功，请重新导入节点配置文件"
@@ -466,7 +466,7 @@ change_pwd(){
     sed -i "s/$old_pwd/$auth_pwd" /etc/hysteria/config.json
     sed -i "s/$old_pwd/$auth_pwd" /root/hy/hy-client.json
     sed -i "s/$old_pwd/$auth_pwd" /root/hy/clash-meta.yaml
-    sed -i "s/$old_pwd/$auth_pwd" /root/hy/URL.txt
+    sed -i "s/$old_pwd/$auth_pwd" /root/hy/url.txt
     stophy && starthy
     green "修改配置成功，请重新导入节点配置文件"
 }
@@ -502,8 +502,8 @@ showconf(){
     yellow "客户端配置文件 hy-client.json 内容如下，并保存到 /root/hy/hy-client.json"
     cat /root/hy/hy-client.json
     yellow "Clash Meta 客户端配置文件已保存到 /root/hy/clash-meta.yaml"
-    yellow "Hysteria 节点分享链接如下，并保存到 /root/hy/URL.txt"
-    red $(cat /root/hy/URL.txt)
+    yellow "Hysteria 节点分享链接如下，并保存到 /root/hy/url.txt"
+    red $(cat /root/hy/url.txt)
 }
 
 menu() {
