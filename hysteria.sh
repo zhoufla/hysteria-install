@@ -109,14 +109,16 @@ inst_cert(){
             fi
         fi
     elif [[ $certInput == 3 ]]; then
-        read -p "请输入公钥文件crt的路径：" certpath
-        yellow "公钥文件crt的路径：$certpath "
-        read -p "请输入密钥文件key的路径：" keypath
-        yellow "密钥文件key的路径：$keypath "
+        read -p "请输入公钥文件 crt 的路径：" certpath
+        yellow "公钥文件 crt 的路径：$certpath "
+        read -p "请输入密钥文件 key 的路径：" keypath
+        yellow "密钥文件 key 的路径：$keypath "
         read -p "请输入证书的域名：" domain
         yellow "证书域名：$domain"
         hy_ym=$domain
     else
+        green "将使用必应自签证书作为 Hysteria 的节点证书"
+
         cert_path="/etc/hysteria/cert.crt"
         key_path="/etc/hysteria/private.key"
         openssl ecparam -genkey -name prime256v1 -out /etc/hysteria/private.key
@@ -129,7 +131,7 @@ inst_cert(){
 }
 
 inst_pro(){
-    green "Hysteria 协议证书申请方式如下："
+    green "Hysteria 节点协议如下："
     echo ""
     echo -e " ${GREEN}1.${PLAIN} UDP ${YELLOW}（默认）${PLAIN}"
     echo -e " ${GREEN}2.${PLAIN} wechat-video"
@@ -143,18 +145,21 @@ inst_pro(){
     else
         protocol="udp"
     fi
+    yellow "将使用 $protocol 作为 Hysteria 的节点协议"
 }
 
 inst_port(){
     read -p "设置 Hysteria 端口[1-65535]（回车则随机分配端口）：" port
     [[ -z $port ]] && port=$(shuf -i 2000-65535 -n 1)
-    until [[ -z $(ss -ntlp | awk '{print $4}' | sed 's/.*://g' | grep -w "$port") ]]; do
-        if [[ -n $(ss -ntlp | awk '{print $4}' | sed 's/.*://g' | grep -w "$port") ]]; then
+    until [[ -z $(ss -tunlp | grep -w udp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") ]]; do
+        if [[ -n $(ss -tunlp | grep -w udp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") ]]; then
             echo -e "${RED} $port ${PLAIN} 端口已经被其他程序占用，请更换端口重试！"
             read -p "设置 Hysteria 端口[1-65535]（回车则随机分配端口）：" port
             [[ -z $port ]] && port=$(shuf -i 2000-65535 -n 1)
         fi
     done
+
+    yellow "将在 Hysteria 节点使用的端口是：$port"
 
     if [[ $protocol == "udp" ]]; then
         inst_jump
@@ -193,6 +198,7 @@ inst_jump(){
 inst_pwd(){
     read -p "设置 Hysteria 密码（回车跳过为随机字符）：" auth_pwd
     [[ -z $auth_pwd ]] && auth_pwd=$(date +%s%N | md5sum | cut -c 1-8)
+    yellow "使用在 Hysteria 节点的密码为：$auth_pwd"
 }
 
 inst_resolv(){
@@ -203,8 +209,10 @@ inst_resolv(){
     echo ""
     read -rp "请输入选项 [1-2]: " resolvInput
     if [[ $resolvInput == 2 ]]; then
+        yellow "Hysteria 域名解析模式已设置成 IPv6 优先"
         resolv=64
     else
+        yellow "Hysteria 域名解析模式已设置成 IPv4 优先"
         resolv=46
     fi
 }
@@ -274,7 +282,7 @@ EOF
 
     # 设置 V2rayN 及 Clash Meta 配置文件
     mkdir /root/hy >/dev/null 2>&1
-    cat <<EOF > /root/hy/v2rayn.json
+    cat <<EOF > /root/hy/hy-client.json
 {
     "protocol": "$protocol",
     "server": "$hy_ym:$last_port",
@@ -290,7 +298,7 @@ EOF
     "lazy_start": true,
     "hop_interval": 60,
     "socks5": {
-        "listen": "127.0.0.1:1080"
+        "listen": "127.0.0.1:5080"
     }
 }
 EOF
@@ -347,8 +355,8 @@ EOF
     fi
 
     green "Hysteria 代理服务安装完成"
-    yellow "v2rayn 客户端配置文件 v2rayn.json 内容如下，并保存到 /root/hy/v2rayn.json"
-    cat /root/hy/v2rayn.json
+    yellow "客户端配置文件 hy-client.json 内容如下，并保存到 /root/hy/hy-client.json"
+    cat /root/hy/hy-client.json
     yellow "Clash Meta 客户端配置文件已保存到 /root/hy/clash-meta.yaml"
     yellow "Hysteria 节点分享链接如下，并保存到 /root/hy/URL.txt"
     red $(cat /root/hy/URL.txt)
@@ -394,8 +402,8 @@ hyswitch(){
 change_cert(){
     old_cert=$(cat /etc/hysteria/config.json | grep cert | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
     old_key=$(cat /etc/hysteria/config.json | grep key | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
-    old_hyym=$(cat /root/hy/v2rayn.json | grep server | sed -n 1p | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g" | awk -F ":" '{print $1}')
-    old_domain=$(cat /root/hy/v2rayn.json | grep server_name | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
+    old_hyym=$(cat /root/hy/hy-client.json | grep server | sed -n 1p | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g" | awk -F ":" '{print $1}')
+    old_domain=$(cat /root/hy/hy-client.json | grep server_name | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
     init_cert
     if [[ $hy_ym == "www.bing.com" ]]; then
         WARPv4Status=$(curl -s4m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
@@ -412,7 +420,7 @@ change_cert(){
     fi
     sed -i "s/$old_cert/$cert_path" /etc/hysteria/config.json
     sed -i "s/$old_key/$key_path" /etc/hysteria/config.json
-    sed -i "s/$old_hyym/$hy_ym" /root/hy/v2rayn.json
+    sed -i "s/$old_hyym/$hy_ym" /root/hy/hy-client.json
     sed -i "s/$old_hyym/$hy_ym" /root/hy/clash-meta.yaml
     sed -i "s/$old_hyym/$hy_ym" /root/hy/URL.txt
     stophy && starthy
@@ -423,7 +431,7 @@ change_pro(){
     old_pro=$(cat /etc/hysteria/config.json | grep protocol | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
     init_pro
     sed -i "s/$old_pro/$protocol" /etc/hysteria/config.json
-    sed -i "s/$old_pro/$protocol" /root/hy/v2rayn.json
+    sed -i "s/$old_pro/$protocol" /root/hy/hy-client.json
     sed -i "s/$old_pro/$protocol" /root/hy/clash-meta.yaml
     sed -i "s/$old_pro/$protocol" /root/hy/URL.txt
     stophy && starthy
@@ -444,7 +452,7 @@ change_port(){
     fi
 
     sed -i "s/$old_port/$port" /etc/hysteria/config.json
-    sed -i "s/$old_port/$last_port" /root/hy/v2rayn.json
+    sed -i "s/$old_port/$last_port" /root/hy/hy-client.json
     sed -i "s/$old_port/$last_port" /root/hy/clash-meta.yaml
     sed -i "s/$old_port/$last_port" /root/hy/URL.txt
 
@@ -456,7 +464,7 @@ change_pwd(){
     old_pwd=$(cat /etc/hysteria/config.json | grep password | sed -n 2p | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
     init_pwd
     sed -i "s/$old_pwd/$auth_pwd" /etc/hysteria/config.json
-    sed -i "s/$old_pwd/$auth_pwd" /root/hy/v2rayn.json
+    sed -i "s/$old_pwd/$auth_pwd" /root/hy/hy-client.json
     sed -i "s/$old_pwd/$auth_pwd" /root/hy/clash-meta.yaml
     sed -i "s/$old_pwd/$auth_pwd" /root/hy/URL.txt
     stophy && starthy
@@ -491,8 +499,8 @@ editconf(){
 }
 
 showconf(){
-    yellow "v2rayn 客户端配置文件 v2rayn.json 内容如下，并保存到 /root/hy/v2rayn.json"
-    cat /root/hy/v2rayn.json
+    yellow "客户端配置文件 hy-client.json 内容如下，并保存到 /root/hy/hy-client.json"
+    cat /root/hy/hy-client.json
     yellow "Clash Meta 客户端配置文件已保存到 /root/hy/clash-meta.yaml"
     yellow "Hysteria 节点分享链接如下，并保存到 /root/hy/URL.txt"
     red $(cat /root/hy/URL.txt)
