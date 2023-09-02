@@ -172,14 +172,14 @@ get_version() {
     fi
     # Get Hysteria release version number
     TMP_FILE="$(mktemp)"
-    if ! curl -x "${PROXY}" -sS -H "Accept: application/vnd.github.v3+json" -o "$TMP_FILE" 'https://api.github.com/repos/apernet/hysteria/releases/latest'; then
-        "rm" "$TMP_FILE"
-        echo 'error: Failed to get release list, please check your network.'
-        exit 1
-    fi
-    RELEASE_LATEST="$(curl -Ls "https://data.jsdelivr.com/v1/package/resolve/gh/apernet/Hysteria" | grep '"version":' | sed -E 's/.*"([^"]+)".*/\1/')"
+    # if ! curl -x "${PROXY}" -sS -H "Accept: application/vnd.github.v3+json" -o "$TMP_FILE" 'https://api.github.com/repos/apernet/hysteria/releases/latest'; then
+    #     "rm" "$TMP_FILE"
+    #     echo 'error: Failed to get release list, please check your network.'
+    #     exit 1
+    # fi
+    # RELEASE_LATEST="$(curl -Ls "https://data.jsdelivr.com/v1/package/resolve/gh/apernet/Hysteria" | grep '"version":' | sed -E 's/.*"([^"]+)".*/\1/')"
     "rm" "$TMP_FILE"
-    RELEASE_VERSION="v${RELEASE_LATEST#v}"
+    RELEASE_VERSION="v1.3.5"
     # Compare Hysteria version numbers
     if [[ "$RELEASE_VERSION" != "$CURRENT_VERSION" ]]; then
         RELEASE_VERSIONSION_NUMBER="${RELEASE_VERSION#v}"
