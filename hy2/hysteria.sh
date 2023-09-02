@@ -382,7 +382,7 @@ change_cert(){
     old_hydomain=$(cat /root/hysteria/hy-client.yaml | grep sni | awk '{print $2}')
 
     init_cert
-    
+
     sed -i "2s/$old_cert/$cert_path" /etc/hysteria/config.yaml
     sed -i "3s/$old_key/$key_path" /etc/hysteria/config.yaml
     sed -i "6s/$old_hydomain/$hy_domain" /root/hy/hy-client.yaml
