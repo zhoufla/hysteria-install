@@ -285,6 +285,25 @@ fastOpen: true
 socks5:
   listen: 127.0.0.1:5080
 EOF
+    cat << EOF > /root/hy/hy-client.json
+{
+  "server": "$ip:$last_port",
+  "auth": "$auth_pwd",
+  "tls": {
+    "sni": "$hy_domain",
+    "insecure": true
+  },
+  "quic": {
+    "initStreamReceiveWindow": 16777216,
+    "maxStreamReceiveWindow": 16777216,
+    "initConnReceiveWindow": 33554432,
+    "maxConnReceiveWindow": 33554432
+  },
+  "socks5": {
+    "listen": "127.0.0.1:5080"
+  }
+}
+EOF
 
     systemctl daemon-reload
     systemctl enable hysteria-server
@@ -296,8 +315,10 @@ EOF
     fi
     red "======================================================================================"
     green "Hysteria 2 代理服务安装完成"
-    yellow "Hysteria 2 客户端配置文件 hy-client.yaml 内容如下，并保存到 /root/hy/hy-client.yaml"
-    cat /root/hy/hy-client.yaml
+    yellow "Hysteria 2 客户端 YAML 配置文件 hy-client.yaml 内容如下，并保存到 /root/hy/hy-client.yaml"
+    red "$(cat /root/hy/hy-client.yaml)"
+    yellow "Hysteria 2 客户端 JSON 配置文件 hy-client.json 内容如下，并保存到 /root/hy/hy-client.json"
+    red "$(cat /root/hy/hy-client.json)"
 }
 
 unsthysteria(){
@@ -307,7 +328,6 @@ unsthysteria(){
     rm -rf /usr/local/bin/hysteria /etc/hysteria /root/hy /root/hysteria.sh
     iptables -t nat -F PREROUTING >/dev/null 2>&1
     netfilter-persistent save >/dev/null 2>&1
-    
     green "Hysteria 2 已彻底卸载完成！"
 }
 
@@ -353,6 +373,7 @@ changeport(){
 
     sed -i "1s#$oldport#$port#g" /etc/hysteria/config.yaml
     sed -i "1s#$oldport#$port#g" /root/hy/hy-client.yaml
+    sed -i "2s#$oldport#$port#g" /root/hy/hy-client.json
 
     stophysteria && starthysteria
 
@@ -369,6 +390,7 @@ changepasswd(){
 
     sed -i "1s#$oldpasswd#$passwd#g" /etc/hysteria/config.yaml
     sed -i "1s#$oldpasswd#$passwd#g" /root/hy/hy-client.yaml
+    sed -i "3s#$oldpasswd#$passwd#g" /root/hy/hy-client.json
 
     stophysteria && starthysteria
 
@@ -387,6 +409,7 @@ change_cert(){
     sed -i "2s/$old_cert/$cert_path" /etc/hysteria/config.yaml
     sed -i "3s/$old_key/$key_path" /etc/hysteria/config.yaml
     sed -i "6s/$old_hydomain/$hy_domain" /root/hy/hy-client.yaml
+    sed -i "5s/$old_hydomain/$hy_domain" /root/hy/hy-client.json
 
     stophysteria && starthysteria
 
@@ -414,7 +437,7 @@ changeconf(){
     echo -e " ${GREEN}3.${PLAIN} 修改证书类型"
     echo -e " ${GREEN}4.${PLAIN} 修改伪装网站"
     echo ""
-    read -p " 请选择操作[1-2]：" confAnswer
+    read -p " 请选择操作 [1-4]：" confAnswer
     case $confAnswer in
         1 ) changeport ;;
         2 ) changepasswd ;;
@@ -425,8 +448,10 @@ changeconf(){
 }
 
 showconf(){
-    yellow "Hysteria 2 客户端配置文件 hy-client.yaml 内容如下，并保存到 /root/hy/hy-client.yaml"
-    cat /root/hy/hy-client.yaml
+    yellow "Hysteria 2 客户端 YAML 配置文件 hy-client.yaml 内容如下，并保存到 /root/hy/hy-client.yaml"
+    red "$(cat /root/hy/hy-client.yaml)"
+    yellow "Hysteria 2 客户端 JSON 配置文件 hy-client.json 内容如下，并保存到 /root/hy/hy-client.json"
+    red "$(cat /root/hy/hy-client.json)"
 }
 
 menu() {
