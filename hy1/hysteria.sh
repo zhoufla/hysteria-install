@@ -367,7 +367,6 @@ uninst_hy(){
     systemctl disable hysteria-server.service >/dev/null 2>&1
     rm -f /lib/systemd/system/hysteria-server.service /lib/systemd/system/hysteria-server@.service
     rm -rf /usr/local/bin/hysteria /etc/hysteria /root/hy /root/hysteria.sh
-    sed -i '/systemctl restart hysteria-server/d' /etc/crontab
     iptables -t nat -F PREROUTING >/dev/null 2>&1
     netfilter-persistent save >/dev/null 2>&1
     green "Hysteria 已彻底卸载完成！"
@@ -404,7 +403,7 @@ change_cert(){
     old_key=$(cat /etc/hysteria/config.json | grep key | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
     old_hyym=$(cat /root/hy/hy-client.json | grep server | sed -n 1p | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g" | awk -F ":" '{print $1}')
     old_domain=$(cat /root/hy/hy-client.json | grep server_name | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
-    init_cert
+    inst_cert
     if [[ $hy_ym == "www.bing.com" ]]; then
         WARPv4Status=$(curl -s4m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
         WARPv6Status=$(curl -s6m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
@@ -429,7 +428,7 @@ change_cert(){
 
 change_pro(){
     old_pro=$(cat /etc/hysteria/config.json | grep protocol | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
-    init_pro
+    inst_pro
     sed -i "s/$old_pro/$protocol" /etc/hysteria/config.json
     sed -i "s/$old_pro/$protocol" /root/hy/hy-client.json
     sed -i "s/$old_pro/$protocol" /root/hy/clash-meta.yaml
@@ -440,7 +439,7 @@ change_pro(){
 
 change_port(){
     old_port=$(cat /etc/hysteria/config.json | grep listen | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g" | sed "s/://g")
-    init_port
+    inst_port
 
     iptables -t nat -F PREROUTING >/dev/null 2>&1
     netfilter-persistent save >/dev/null 2>&1
@@ -462,7 +461,7 @@ change_port(){
 
 change_pwd(){
     old_pwd=$(cat /etc/hysteria/config.json | grep password | sed -n 2p | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
-    init_pwd
+    inst_pwd
     sed -i "s/$old_pwd/$auth_pwd" /etc/hysteria/config.json
     sed -i "s/$old_pwd/$auth_pwd" /root/hy/hy-client.json
     sed -i "s/$old_pwd/$auth_pwd" /root/hy/clash-meta.yaml
