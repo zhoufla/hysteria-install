@@ -253,7 +253,7 @@ auth:
 masquerade:
   type: proxy
   proxy:
-    url: $proxysite
+    url: https://$proxysite
     rewriteHost: true
 EOF
 
@@ -264,8 +264,8 @@ EOF
         last_port=$port
     fi
 
-    mkdir /root/hysteria
-    cat << EOF > /root/hysteria/hy-client.yaml
+    mkdir /root/hy
+    cat << EOF > /root/hy/hy-client.yaml
 server: $ip:$port
 
 auth: $auth_pwd
@@ -337,7 +337,7 @@ hysteriaswitch(){
 }
 
 changeport(){
-    oldport=$(cat /etc/hysteria/config.yaml 2>/dev/null | sed -n 2p | awk '{print $2}' | tr -d ',' | awk -F ":" '{print $2}' | tr -d '"')
+    oldport=$(cat /etc/hysteria/config.yaml 2>/dev/null | sed -n 1p | awk '{print $2}' | awk -F ":" '{print $2}')
     
     read -p "设置 Hysteria 2 端口[1-65535]（回车则随机分配端口）：" port
     [[ -z $port ]] && port=$(shuf -i 2000-65535 -n 1)
@@ -351,7 +351,7 @@ changeport(){
     done
 
     sed -i "1s#$oldport#$port#g" /etc/hysteria/config.yaml
-    sed -i "1s#$oldport#$port#g" /root/hysteria/hy-client.yaml
+    sed -i "1s#$oldport#$port#g" /root/hy/hy-client.yaml
 
     stophysteria && starthysteria
 
@@ -361,13 +361,13 @@ changeport(){
 }
 
 changepasswd(){
-    oldpasswd=$(cat /etc/hysteria/config.yaml 2>/dev/null | sed -n 4p | awk '{print $2}' | tr -d '"')
+    oldpasswd=$(cat /etc/hysteria/config.yaml 2>/dev/null | sed -n 15p | awk '{print $2}')
 
     read -p "设置 Hysteria 2 密码（回车跳过为随机字符）：" passwd
     [[ -z $passwd ]] && passwd=$(date +%s%N | md5sum | cut -c 1-8)
 
     sed -i "1s#$oldpasswd#$passwd#g" /etc/hysteria/config.yaml
-    sed -i "1s#$oldpasswd#$passwd#g" /root/hysteria/hy-client.yaml
+    sed -i "1s#$oldpasswd#$passwd#g" /root/hy/hy-client.yaml
 
     stophysteria && starthysteria
 
@@ -377,24 +377,12 @@ changepasswd(){
 }
 
 change_cert(){
-    old_cert=$(cat /etc/hysteria/config.yaml | grep cert | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
-    old_key=$(cat /etc/hysteria/config.yaml | grep key | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
-    old_hydomain=$(cat /root/hy/hy-client.yaml | grep server | sed -n 1p | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g" | awk -F ":" '{print $1}')
-    old_domain=$(cat /root/hy/hy-client.yaml | grep server_name | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
+    old_cert=$(cat /etc/hysteria/config.yaml | grep cert | awk -F " " '{print $2}')
+    old_key=$(cat /etc/hysteria/config.yaml | grep key | awk -F " " '{print $2}')
+    old_hydomain=$(cat /root/hysteria/hy-client.yaml | grep sni | awk '{print $2}')
+
     init_cert
-    if [[ $hy_domain == "www.bing.com" ]]; then
-        WARPv4Status=$(curl -s4m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
-        WARPv6Status=$(curl -s6m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
-        if [[ $WARPv4Status =~ on|plus ]] || [[ $WARPv6Status =~ on|plus ]]; then
-            wg-quick down wgcf >/dev/null 2>&1
-            systemctl stop warp-go >/dev/null 2>&1
-            hy_domain=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || hy_domain=$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)
-            wg-quick up wgcf >/dev/null 2>&1
-            systemctl start warp-go >/dev/null 2>&1
-        else
-            hy_domain=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || hy_domain=$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)
-        fi
-    fi
+    
     sed -i "2s/$old_cert/$cert_path" /etc/hysteria/config.yaml
     sed -i "3s/$old_key/$key_path" /etc/hysteria/config.yaml
     sed -i "6s/$old_hydomain/$hy_domain" /root/hy/hy-client.yaml
@@ -407,7 +395,7 @@ change_cert(){
 }
 
 changeproxysite(){
-    oldproxysite=$(cat /etc/caddy/Caddyfile | grep "reverse_proxy" | awk '{print $2}' | sed "s/https:\/\///g")
+    oldproxysite=$(cat /etc/hysteria/config.yaml | grep url | awk -F " " '{print $2}' | awk -F "https://" '{print $2}')
     
     inst_site
 
