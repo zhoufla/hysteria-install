@@ -266,7 +266,7 @@ EOF
 
     mkdir /root/hy
     cat << EOF > /root/hy/hy-client.yaml
-server: $ip:$port
+server: $ip:$last_port
 
 auth: $auth_pwd
 
