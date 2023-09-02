@@ -272,6 +272,7 @@ auth: $auth_pwd
 
 tls:
   sni: $hy_domain
+  insecure: true
 
 quic:
   initStreamReceiveWindow: 16777216
