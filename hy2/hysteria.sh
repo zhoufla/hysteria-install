@@ -53,7 +53,7 @@ realip(){
 }
 
 inst_cert(){
-    green "Hysteria 协议证书申请方式如下："
+    green "Hysteria 2 协议证书申请方式如下："
     echo ""
     echo -e " ${GREEN}1.${PLAIN} 必应自签证书 ${YELLOW}（默认）${PLAIN}"
     echo -e " ${GREEN}2.${PLAIN} Acme 脚本自动申请"
@@ -130,7 +130,7 @@ inst_cert(){
         yellow "证书域名：$domain"
         hy_domain=$domain
     else
-        green "将使用必应自签证书作为 Hysteria 的节点证书"
+        green "将使用必应自签证书作为 Hysteria 2 的节点证书"
 
         cert_path="/etc/hysteria/cert.crt"
         key_path="/etc/hysteria/private.key"
@@ -144,22 +144,22 @@ inst_cert(){
 }
 
 inst_port(){
-    read -p "设置 Hysteria 端口 [1-65535]（回车则随机分配端口）：" port
+    read -p "设置 Hysteria 2 端口 [1-65535]（回车则随机分配端口）：" port
     [[ -z $port ]] && port=$(shuf -i 2000-65535 -n 1)
     until [[ -z $(ss -tunlp | grep -w udp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") ]]; do
         if [[ -n $(ss -tunlp | grep -w udp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") ]]; then
             echo -e "${RED} $port ${PLAIN} 端口已经被其他程序占用，请更换端口重试！"
-            read -p "设置 Hysteria 端口 [1-65535]（回车则随机分配端口）：" port
+            read -p "设置 Hysteria 2 端口 [1-65535]（回车则随机分配端口）：" port
             [[ -z $port ]] && port=$(shuf -i 2000-65535 -n 1)
         fi
     done
 
-    yellow "将在 Hysteria 节点使用的端口是：$port"
+    yellow "将在 Hysteria 2 节点使用的端口是：$port"
     inst_jump
 }
 
 inst_jump(){
-    green "Hysteria 端口使用模式如下："
+    green "Hysteria 2 端口使用模式如下："
     echo ""
     echo -e " ${GREEN}1.${PLAIN} 单端口 ${YELLOW}（默认）${PLAIN}"
     echo -e " ${GREEN}2.${PLAIN} 端口跳跃"
@@ -187,9 +187,9 @@ inst_jump(){
 }
 
 inst_pwd(){
-    read -p "设置 Hysteria 密码（回车跳过为随机字符）：" auth_pwd
+    read -p "设置 Hysteria 2 密码（回车跳过为随机字符）：" auth_pwd
     [[ -z $auth_pwd ]] && auth_pwd=$(date +%s%N | md5sum | cut -c 1-8)
-    yellow "使用在 Hysteria 节点的密码为：$auth_pwd"
+    yellow "使用在 Hysteria 2 节点的密码为：$auth_pwd"
 }
 
 inst_site(){
