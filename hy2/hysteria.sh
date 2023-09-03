@@ -144,6 +144,8 @@ inst_cert(){
 }
 
 inst_port(){
+    iptables -t nat -F PREROUTING >/dev/null 2>&1
+
     read -p "设置 Hysteria 2 端口 [1-65535]（回车则随机分配端口）：" port
     [[ -z $port ]] && port=$(shuf -i 2000-65535 -n 1)
     until [[ -z $(ss -tunlp | grep -w udp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") ]]; do
@@ -179,7 +181,6 @@ inst_jump(){
         fi
         iptables -t nat -A PREROUTING -p udp --dport $firstport:$endport  -j DNAT --to-destination :$port
         ip6tables -t nat -A PREROUTING -p udp --dport $firstport:$endport  -j DNAT --to-destination :$port
-        iptables -t nat -F PREROUTING >/dev/null 2>&1
         netfilter-persistent save >/dev/null 2>&1
     else
         red "将继续使用单端口模式"
