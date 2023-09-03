@@ -418,14 +418,14 @@ changepasswd(){
 change_cert(){
     old_cert=$(cat /etc/hysteria/config.yaml | grep cert | awk -F " " '{print $2}')
     old_key=$(cat /etc/hysteria/config.yaml | grep key | awk -F " " '{print $2}')
-    old_hydomain=$(cat /root/hysteria/hy-client.yaml | grep sni | awk '{print $2}')
+    old_hydomain=$(cat /root/hy/hy-client.yaml | grep sni | awk '{print $2}')
 
     inst_cert
 
-    sed -i "2s/$old_cert/$cert_path" /etc/hysteria/config.yaml
-    sed -i "3s/$old_key/$key_path" /etc/hysteria/config.yaml
-    sed -i "6s/$old_hydomain/$hy_domain" /root/hy/hy-client.yaml
-    sed -i "5s/$old_hydomain/$hy_domain" /root/hy/hy-client.json
+    sed -i "s!$old_cert!$cert_path!g" /etc/hysteria/config.yaml
+    sed -i "s!$old_key!$key_path!g" /etc/hysteria/config.yaml
+    sed -i "6s/$old_hydomain/$hy_domain/g" /root/hy/hy-client.yaml
+    sed -i "5s/$old_hydomain/$hy_domain/g" /root/hy/hy-client.json
 
     stophysteria && starthysteria
 
