@@ -157,7 +157,7 @@ inst_port(){
     done
 
     yellow "将在 Hysteria 2 节点使用的端口是：$port"
-    # inst_jump
+    inst_jump
 }
 
 inst_jump(){
@@ -285,6 +285,10 @@ fastOpen: true
 
 socks5:
   listen: 127.0.0.1:5080
+
+transport:
+  udp:
+    hopInterval: 30s 
 EOF
     cat << EOF > /root/hy/hy-client.json
 {
@@ -302,6 +306,11 @@ EOF
   },
   "socks5": {
     "listen": "127.0.0.1:5080"
+  },
+  "transport": {
+    "udp": {
+      "hopInterval": "30s"
+    }
   }
 }
 EOF
