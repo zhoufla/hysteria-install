@@ -315,6 +315,9 @@ EOF
 }
 EOF
 
+    url="hysteria2://$auth_pwd@$ip:$last_port/?insecure=1&sni=$hy_domain"
+    echo $url > /root/hy/url.txt
+
     systemctl daemon-reload
     systemctl enable hysteria-server
     systemctl start hysteria-server
@@ -326,9 +329,11 @@ EOF
     red "======================================================================================"
     green "Hysteria 2 代理服务安装完成"
     yellow "Hysteria 2 客户端 YAML 配置文件 hy-client.yaml 内容如下，并保存到 /root/hy/hy-client.yaml"
-    red "$(cat /root/hy/hy-client.yaml)"
+    red $(cat /root/hy/hy-client.yaml)
     yellow "Hysteria 2 客户端 JSON 配置文件 hy-client.json 内容如下，并保存到 /root/hy/hy-client.json"
-    red "$(cat /root/hy/hy-client.json)"
+    red $(cat /root/hy/hy-client.json)
+    yellow "Hysteria 2 节点分享链接如下，并保存到 /root/hy/url.txt"
+    red $(cat /root/hy/url.txt)
 }
 
 unsthysteria(){
@@ -338,6 +343,7 @@ unsthysteria(){
     rm -rf /usr/local/bin/hysteria /etc/hysteria /root/hy /root/hysteria.sh
     iptables -t nat -F PREROUTING >/dev/null 2>&1
     netfilter-persistent save >/dev/null 2>&1
+
     green "Hysteria 2 已彻底卸载完成！"
 }
 
@@ -459,9 +465,11 @@ changeconf(){
 
 showconf(){
     yellow "Hysteria 2 客户端 YAML 配置文件 hy-client.yaml 内容如下，并保存到 /root/hy/hy-client.yaml"
-    red "$(cat /root/hy/hy-client.yaml)"
+    red $(cat /root/hy/hy-client.yaml)
     yellow "Hysteria 2 客户端 JSON 配置文件 hy-client.json 内容如下，并保存到 /root/hy/hy-client.json"
-    red "$(cat /root/hy/hy-client.json)"
+    red $(cat /root/hy/hy-client.json)
+    yellow "Hysteria 2 节点分享链接如下，并保存到 /root/hy/url.txt"
+    red $(cat /root/hy/url.txt)
 }
 
 menu() {

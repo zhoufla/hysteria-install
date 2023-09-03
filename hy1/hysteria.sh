@@ -150,7 +150,7 @@ inst_pro(){
 
 inst_port(){
     iptables -t nat -F PREROUTING >/dev/null 2>&1
-    
+
     read -p "设置 Hysteria 端口[1-65535]（回车则随机分配端口）：" port
     [[ -z $port ]] && port=$(shuf -i 2000-65535 -n 1)
     until [[ -z $(ss -tunlp | grep -w udp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") ]]; do
@@ -289,8 +289,8 @@ EOF
     "server": "$hy_ym:$last_port",
     "server_name": "$domain",
     "alpn": "h3",
-    "up_mbps": 50,
-    "down_mbps": 150,
+    "up_mbps": 20,
+    "down_mbps": 100,
     "auth_str": "$auth_pwd",
     "insecure": true,
     "retry": 3,
@@ -342,7 +342,7 @@ rules:
   - GEOIP,CN,DIRECT
   - MATCH,Proxy
 EOF
-    url="hysteria://$hy_ym:$port?protocol=$protocol&auth=$auth_pwd&peer=$domain&insecure=$true&upmbps=10&downmbps=50&alpn=h3#Misaka-Hysteria"
+    url="hysteria://$hy_ym:$port?protocol=$protocol&auth=$auth_pwd&peer=$domain&insecure=$true&upmbps=20&downmbps=100&alpn=h3#Misaka-Hysteria"
     echo $url > /root/hy/url.txt
 
     systemctl daemon-reload
