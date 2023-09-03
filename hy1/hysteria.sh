@@ -48,6 +48,8 @@ inst_cert(){
     echo ""
     read -rp "请输入选项 [1-3]: " certInput
     if [[ $certInput == 2 ]]; then
+        cert_path="/root/cert.crt"
+        key_path="/root/private.key"
         if [[ -f /root/cert.crt && -f /root/private.key ]] && [[ -s /root/cert.crt && -s /root/private.key ]] && [[ -f /root/ca.log ]]; then
             domain=$(cat /root/ca.log)
             green "检测到原有域名：$domain 的证书，正在应用"
@@ -418,11 +420,11 @@ change_cert(){
             hy_ym=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || hy_ym=$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)
         fi
     fi
-    sed -i "s/$old_cert/$cert_path" /etc/hysteria/config.json
-    sed -i "s/$old_key/$key_path" /etc/hysteria/config.json
-    sed -i "s/$old_hyym/$hy_ym" /root/hy/hy-client.json
-    sed -i "s/$old_hyym/$hy_ym" /root/hy/clash-meta.yaml
-    sed -i "s/$old_hyym/$hy_ym" /root/hy/url.txt
+    sed -i "s!$old_cert!$cert_path!g" /etc/hysteria/config.json
+    sed -i "s!$old_key!$key_path!g" /etc/hysteria/config.json
+    sed -i "s/$old_hyym/$hy_ym/g" /root/hy/hy-client.json
+    sed -i "s/$old_hyym/$hy_ym/g" /root/hy/clash-meta.yaml
+    sed -i "s/$old_hyym/$hy_ym/g" /root/hy/url.txt
     stophy && starthy
     green "修改配置成功，请重新导入节点配置文件"
 }
