@@ -39,6 +39,10 @@ done
 
 [[ -z $SYSTEM ]] && red "不支持当前VPS系统, 请使用主流的操作系统" && exit 1
 
+realip(){
+    ip=$(curl -s4m8 ip.sb -k) || ip=$(curl -s6m8 ip.sb -k)
+}
+
 inst_cert(){
     green "Hysteria 协议证书申请方式如下："
     echo ""
@@ -60,11 +64,11 @@ inst_cert(){
             if [[ $WARPv4Status =~ on|plus ]] || [[ $WARPv6Status =~ on|plus ]]; then
                 wg-quick down wgcf >/dev/null 2>&1
                 systemctl stop warp-go >/dev/null 2>&1
-                ip=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || ip=$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)
+                realip
                 wg-quick up wgcf >/dev/null 2>&1
                 systemctl start warp-go >/dev/null 2>&1
             else
-                ip=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || ip=$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)
+                realip
             fi
             
             read -p "请输入需要申请证书的域名：" domain
