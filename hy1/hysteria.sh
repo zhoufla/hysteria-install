@@ -415,7 +415,7 @@ hyswitch(){
 change_cert(){
     old_cert=$(cat /etc/hysteria/config.json | grep cert | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
     old_key=$(cat /etc/hysteria/config.json | grep key | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
-    old_hyym=$(cat /root/hy/hy-client.json | grep server | sed -n 1p | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g" | awk -F ":" '{print $1}')
+    old_hyym=$(cat /root/hy/hy-client.json | grep server | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g" | awk -F ":" '{print $1}')
     old_domain=$(cat /root/hy/hy-client.json | grep server_name | awk -F " " '{print $2}' | sed "s/\"//g" | sed "s/,//g")
     inst_cert
     if [[ $hy_ym == "www.bing.com" ]]; then
@@ -424,11 +424,11 @@ change_cert(){
         if [[ $WARPv4Status =~ on|plus ]] || [[ $WARPv6Status =~ on|plus ]]; then
             wg-quick down wgcf >/dev/null 2>&1
             systemctl stop warp-go >/dev/null 2>&1
-            hy_ym=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || hy_ym=$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)
+            hy_ym=$(curl -s4m8 ip.sb -k) || hy_ym="[$(curl -s6m8 ip.sb -k)]"
             wg-quick up wgcf >/dev/null 2>&1
             systemctl start warp-go >/dev/null 2>&1
         else
-            hy_ym=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || hy_ym=$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)
+            hy_ym=$(curl -s4m8 ip.sb -k) || hy_ym="[$(curl -s6m8 ip.sb -k)]"
         fi
     fi
     sed -i "s!$old_cert!$cert_path!g" /etc/hysteria/config.json
