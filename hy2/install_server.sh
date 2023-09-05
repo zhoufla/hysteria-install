@@ -161,6 +161,10 @@ has_prefix() {
     [[ "x$_s" != "x${_s#"$_prefix"}" ]]
 }
 
+generate_random_password() {
+  dd if=/dev/random bs=18 count=1 status=none | base64
+}
+
 systemctl() {
   if [[ "x$FORCE_NO_SYSTEMD" == "x2" ]] || ! has_command systemctl; then
     warning "Ignored systemd command: systemctl $@"
@@ -645,8 +649,8 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=$EXECUTABLE_INSTALL_PATH server --config ${_config_name}.yaml
-WorkingDirectory=$CONFIG_DIR
+ExecStart=$EXECUTABLE_INSTALL_PATH server --config ${CONFIG_DIR}/${_config_name}.yaml
+WorkingDirectory=$HYSTERIA_HOME_DIR
 User=$HYSTERIA_USER
 Group=$HYSTERIA_USER
 Environment=HYSTERIA_LOG_LEVEL=info
@@ -681,7 +685,7 @@ acme:
 
 auth:
   type: password
-  password: Se7RAuFZ8Lzg
+  password: $(generate_random_password)
 
 masquerade:
   type: proxy
@@ -758,7 +762,7 @@ is_hysteria1_version() {
 get_installed_version() {
   if is_hysteria_installed; then
     if "$EXECUTABLE_INSTALL_PATH" version > /dev/null 2>&1; then
-      "$EXECUTABLE_INSTALL_PATH" version | grep Version | grep -o 'v[.1-9]*'
+      "$EXECUTABLE_INSTALL_PATH" version | grep Version | grep -o 'v[.0-9]*'
     elif "$EXECUTABLE_INSTALL_PATH" -v > /dev/null 2>&1; then
       # hysteria 1
       "$EXECUTABLE_INSTALL_PATH" -v | cut -d ' ' -f 3
@@ -961,7 +965,7 @@ perform_install() {
     echo
     echo -e "$(tred)Hysteria 2 uses a completely redesigned protocol & config, which is NOT compatible with the version 1.x.x in any way.$(treset)"
     echo
-    echo -e "\t+ Take a look at the changes from Hysteria 1 to Hysteria 2 at $(tblue)https://hysteria.network/docs/misc/2-vs-1/$(treset)"
+    echo -e "\t+ Take a look at the behavior changes in Hysteria 2 at $(tblue)https://hysteria.network/docs/misc/2-vs-1/$(treset)"
     echo -e "\t+ Check out the quick server configuration guide for Hysteria 2 at $(tblue)https://hysteria.network/docs/getting-started/Server/$(treset)"
     echo -e "\t+ Migrate server config file to the Hysteria 2 at $(tred)$CONFIG_DIR/config.yaml$(treset)"
     echo -e "\t+ Start your hysteria server with $(tred)systemctl restart hysteria-server.service$(treset)"
