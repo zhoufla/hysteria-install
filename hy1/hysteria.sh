@@ -272,6 +272,13 @@ EOF
         last_port=$port
     fi
 
+    # 给 IPv6 地址加中括号
+    if [[ -n $(echo $ip | grep ":") ]]; then
+        last_ip="[$ip]"
+    else
+        last_ip=$ip
+    fi
+
     # 判断证书是否为必应自签，如是则使用 IP 作为节点入站
     if [[ $hy_ym == "www.bing.com" ]]; then
         WARPv4Status=$(curl -s4m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
@@ -279,11 +286,11 @@ EOF
         if [[ $WARPv4Status =~ on|plus ]] || [[ $WARPv6Status =~ on|plus ]]; then
             wg-quick down wgcf >/dev/null 2>&1
             systemctl stop warp-go >/dev/null 2>&1
-            hy_ym=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || hy_ym="[$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)]"
+            hy_ym=$last_ip
             wg-quick up wgcf >/dev/null 2>&1
             systemctl start warp-go >/dev/null 2>&1
         else
-            hy_ym=$(curl -s4m8 ip.p3terx.com -k | sed -n 1p) || hy_ym="[$(curl -s6m8 ip.p3terx.com -k | sed -n 1p)]"
+            hy_ym=$last_ip
         fi
     fi
 

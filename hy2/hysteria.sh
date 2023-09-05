@@ -267,9 +267,16 @@ EOF
         last_port=$port
     fi
 
+    # 给 IPv6 地址加中括号
+    if [[ -n $(echo $ip | grep ":") ]]; then
+        last_ip="[$ip]"
+    else
+        last_ip=$ip
+    fi
+
     mkdir /root/hy
     cat << EOF > /root/hy/hy-client.yaml
-server: $ip:$last_port
+server: $last_ip:$last_port
 
 auth: $auth_pwd
 
@@ -294,7 +301,7 @@ transport:
 EOF
     cat << EOF > /root/hy/hy-client.json
 {
-  "server": "$ip:$last_port",
+  "server": "$last_ip:$last_port",
   "auth": "$auth_pwd",
   "tls": {
     "sni": "$hy_domain",
@@ -317,7 +324,7 @@ EOF
 }
 EOF
 
-    url="hysteria2://$auth_pwd@$ip:$last_port/?insecure=1&sni=$hy_domain"
+    url="hysteria2://$auth_pwd@$last_ip:$last_port/?insecure=1&sni=$hy_domain"
     echo $url > /root/hy/url.txt
 
     systemctl daemon-reload
