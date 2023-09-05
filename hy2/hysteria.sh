@@ -63,6 +63,9 @@ inst_cert(){
     if [[ $certInput == 2 ]]; then
         cert_path="/root/cert.crt"
         key_path="/root/private.key"
+
+        chmod a+x /root # 让 Hysteria 主程序访问到 /root 目录
+
         if [[ -f /root/cert.crt && -f /root/private.key ]] && [[ -s /root/cert.crt && -s /root/private.key ]] && [[ -f /root/ca.log ]]; then
             domain=$(cat /root/ca.log)
             green "检测到原有域名：$domain 的证书，正在应用"
