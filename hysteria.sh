@@ -212,7 +212,7 @@ inst_site(){
 }
 
 inst_hyv1(){
-    if [[ -n $(hysteria version | grep v2) ]]; then
+    if [[ -f "/etc/hysteria/config.yaml" ]]; then
         red "检测到已安装 Hysteria 2，请先卸载再安装 Hysteria 1！"
         exit 1
     fi
@@ -365,7 +365,7 @@ unst_hyv1(){
 }
 
 inst_hyv2(){
-    if [[ -n $(hysteria version | grep v2) ]]; then
+    if [[ -f "/etc/hysteria/config.yaml" ]]; then
         red "检测到已安装 Hysteria 2，请先卸载再安装 Hysteria 1！"
         exit 1
     fi
@@ -533,7 +533,7 @@ hy_switch(){
 }
 
 changeport(){
-    if [[ -n $(hysteria version | grep v2) ]]; then
+    if [[ -f "/etc/hysteria/config.yaml" ]]; then
         oldport=$(cat /etc/hysteria/config.yaml 2>/dev/null | sed -n 1p | awk '{print $2}' | awk -F ":" '{print $2}')
     
         inst_port && inst_jump
@@ -585,7 +585,7 @@ changeport(){
 }
 
 changepasswd(){
-    if [[ -n $(hysteria version | grep v2) ]]; then
+    if [[ -f "/etc/hysteria/config.yaml" ]]; then
         old_pwd=$(cat /etc/hysteria/config.yaml 2>/dev/null | sed -n 15p | awk '{print $2}')
 
         inst_pwd
@@ -619,7 +619,7 @@ changepasswd(){
 }
 
 change_cert(){
-    if [[ -n $(hysteria version | grep v2) ]]; then
+    if [[ -f "/etc/hysteria/config.yaml" ]]; then
         old_cert=$(cat /etc/hysteria/config.yaml | grep cert | awk -F " " '{print $2}')
         old_key=$(cat /etc/hysteria/config.yaml | grep key | awk -F " " '{print $2}')
         old_hydomain=$(cat /root/hy/hy-client.yaml | grep sni | awk '{print $2}')
@@ -717,7 +717,7 @@ changeproxysite(){
 }
 
 changeconf(){
-    if [[ -n $(hysteria version | grep v2) ]]; then
+    if [[ -f "/etc/hysteria/config.yaml" ]]; then
         green "Hysteria 2 配置变更选择如下:"
         echo -e " ${GREEN}1.${PLAIN} 修改端口"
         echo -e " ${GREEN}2.${PLAIN} 修改密码"
@@ -753,7 +753,7 @@ changeconf(){
 }
 
 showconf(){
-    if [[ -n $(hysteria version | grep v2) ]]; then
+    if [[ -f "/etc/hysteria/config.yaml" ]]; then
         yellow "Hysteria 2 客户端 YAML 配置文件 hy-client.yaml 内容如下，并保存到 /root/hy/hy-client.yaml"
         red "$(cat /root/hy/hy-client.yaml)"
         yellow "Hysteria 2 客户端 JSON 配置文件 hy-client.json 内容如下，并保存到 /root/hy/hy-client.json"
