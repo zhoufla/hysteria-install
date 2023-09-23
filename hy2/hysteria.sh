@@ -353,7 +353,7 @@ proxy-groups:
   - name: Proxy
     type: select
     proxies:
-      - Misaka-Hysteria
+      - Misaka-Hysteria2
       
 rules:
   - GEOIP,CN,DIRECT
