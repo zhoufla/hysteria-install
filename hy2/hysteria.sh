@@ -316,6 +316,7 @@ EOF
     "initConnReceiveWindow": 33554432,
     "maxConnReceiveWindow": 33554432
   },
+  "fastOpen": true,
   "socks5": {
     "listen": "127.0.0.1:5080"
   },
