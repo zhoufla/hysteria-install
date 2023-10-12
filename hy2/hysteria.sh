@@ -519,6 +519,12 @@ showconf(){
     red "$(cat /root/hy/url.txt)"
 }
 
+update_core(){
+    wget -N https://raw.githubusercontent.com/Misaka-blog/hysteria-install/main/hy2/install_server.sh
+    bash install_server.sh
+    rm -f install_server.sh
+}
+
 menu() {
     clear
     echo "#############################################################"
@@ -539,6 +545,8 @@ menu() {
     echo -e " ${GREEN}4.${PLAIN} 修改 Hysteria 2 配置"
     echo -e " ${GREEN}5.${PLAIN} 显示 Hysteria 2 配置文件"
     echo " -------------"
+    echo -e " ${GREEN}6.${PLAIN} 更新 Hysteria 2 内核"
+    echo " -------------"
     echo -e " ${GREEN}0.${PLAIN} 退出脚本"
     echo ""
     read -rp "请输入选项 [0-5]: " menuInput
@@ -548,6 +556,7 @@ menu() {
         3 ) hysteriaswitch ;;
         4 ) changeconf ;;
         5 ) showconf ;;
+        6 ) update_core ;;
         * ) exit 1 ;;
     esac
 }
