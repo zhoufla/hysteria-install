@@ -362,6 +362,8 @@ rules:
 EOF
     url="hysteria2://$auth_pwd@$last_ip:$last_port/?insecure=1&sni=$hy_domain#Misaka-Hysteria2"
     echo $url > /root/hy/url.txt
+    nohopurl="hysteria2://$auth_pwd@$last_ip:$port/?insecure=1&sni=$hy_domain#Misaka-Hysteria2"
+    echo $nohopurl > /root/hy/url-nohop.txt
 
     systemctl daemon-reload
     systemctl enable hysteria-server
@@ -380,6 +382,8 @@ EOF
     yellow "Clash Meta 客户端配置文件已保存到 /root/hy/clash-meta.yaml"
     yellow "Hysteria 2 节点分享链接如下，并保存到 /root/hy/url.txt"
     red "$(cat /root/hy/url.txt)"
+    yellow "Hysteria 2 节点单端口的分享链接如下，并保存到 /root/hy/url.txt"
+    red "$(cat /root/hy/url-nohop.txt)"
 }
 
 unsthysteria(){
@@ -517,6 +521,8 @@ showconf(){
     yellow "Clash Meta 客户端配置文件已保存到 /root/hy/clash-meta.yaml"
     yellow "Hysteria 2 节点分享链接如下，并保存到 /root/hy/url.txt"
     red "$(cat /root/hy/url.txt)"
+    yellow "Hysteria 2 节点单端口的分享链接如下，并保存到 /root/hy/url.txt"
+    red "$(cat /root/hy/url-nohop.txt)"
 }
 
 update_core(){
