@@ -64,7 +64,7 @@ inst_cert(){
         cert_path="/root/cert.crt"
         key_path="/root/private.key"
 
-        chmod a+x /root # 让 Hysteria 主程序访问到 /root 目录
+        chmod -R 777 /root # 让 Hysteria 主程序访问到 /root 目录
 
         if [[ -f /root/cert.crt && -f /root/private.key ]] && [[ -s /root/cert.crt && -s /root/private.key ]] && [[ -f /root/ca.log ]]; then
             domain=$(cat /root/ca.log)
@@ -230,6 +230,7 @@ insthysteria(){
         green "Hysteria 2 安装成功！"
     else
         red "Hysteria 2 安装失败！"
+        exit 1
     fi
 
     # 询问用户 Hysteria 配置
@@ -528,6 +529,7 @@ showconf(){
 update_core(){
     wget -N https://raw.githubusercontent.com/Misaka-blog/hysteria-install/main/hy2/install_server.sh
     bash install_server.sh
+    
     rm -f install_server.sh
 }
 
