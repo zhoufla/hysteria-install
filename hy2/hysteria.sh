@@ -269,6 +269,12 @@ quic:
   initConnReceiveWindow: 33554432
   maxConnReceiveWindow: 33554432
 
+bandwidth:
+  up: 300 mbps
+  down: 30 mbps
+
+ignoreClientBandwidth: false
+
 auth:
   type: password
   password: $auth_pwd
