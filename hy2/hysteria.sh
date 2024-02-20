@@ -273,7 +273,7 @@ bandwidth:
   up: 300 mbps
   down: 30 mbps
 
-ignoreClientBandwidth: false
+ignoreClientBandwidth: true
 
 auth:
   type: password
