@@ -64,7 +64,10 @@ inst_cert(){
         cert_path="/root/cert.crt"
         key_path="/root/private.key"
 
-        chmod -R 777 /root # 让 Hysteria 主程序访问到 /root 目录
+        chmod -R 777 /root
+        
+        chmod +rw /root/cert.crt
+        chmod +rw /root/private.key
 
         if [[ -f /root/cert.crt && -f /root/private.key ]] && [[ -s /root/cert.crt && -s /root/private.key ]] && [[ -f /root/ca.log ]]; then
             domain=$(cat /root/ca.log)
@@ -150,6 +153,9 @@ inst_cert(){
         read -p "请输入证书的域名：" domain
         yellow "证书域名：$domain"
         hy_domain=$domain
+
+        chmod +rw $cert_path
+        chmod +rw $key_path
     else
         green "将使用必应自签证书作为 Hysteria 2 的节点证书"
 
