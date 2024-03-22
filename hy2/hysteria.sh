@@ -49,7 +49,7 @@ if [[ -z $(type -P curl) ]]; then
 fi
 
 realip(){
-    ip=$(curl -s4m8 ip.sb -k) || ip=$(curl -s6m8 ip.sb -k)
+    ip=$(curl -s4m8 ip.gs -k) || ip=$(curl -s6m8 ip.gs -k)
 }
 
 inst_cert(){

@@ -40,7 +40,7 @@ done
 [[ -z $SYSTEM ]] && red "不支持当前VPS系统, 请使用主流的操作系统" && exit 1
 
 realip(){
-    ip=$(curl -s4m8 ip.sb -k) || ip=$(curl -s6m8 ip.sb -k)
+    ip=$(curl -s4m8 ip.gs -k) || ip=$(curl -s6m8 ip.gs -k)
 }
 
 inst_cert(){
@@ -440,11 +440,11 @@ change_cert(){
         if [[ $WARPv4Status =~ on|plus ]] || [[ $WARPv6Status =~ on|plus ]]; then
             wg-quick down wgcf >/dev/null 2>&1
             systemctl stop warp-go >/dev/null 2>&1
-            hy_ym=$(curl -s4m8 ip.sb -k) || hy_ym="[$(curl -s6m8 ip.sb -k)]"
+            hy_ym=$(curl -s4m8 ip.gs -k) || hy_ym="[$(curl -s6m8 ip.gs -k)]"
             wg-quick up wgcf >/dev/null 2>&1
             systemctl start warp-go >/dev/null 2>&1
         else
-            hy_ym=$(curl -s4m8 ip.sb -k) || hy_ym="[$(curl -s6m8 ip.sb -k)]"
+            hy_ym=$(curl -s4m8 ip.gs -k) || hy_ym="[$(curl -s6m8 ip.gs -k)]"
         fi
     fi
     sed -i "s!$old_cert!$cert_path!g" /etc/hysteria/config.json
